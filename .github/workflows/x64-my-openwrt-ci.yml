@@ -8,11 +8,11 @@
 name: X64-My-OpenWrt-CI
 
 on:
-  schedule:
-    - cron: 0 22 * * *
-  push:
-    branches: 
-      - master
+#  schedule:
+#    - cron: 0 22 * * *
+#  push:
+#    branches: 
+#      - master
 
 jobs:
   build:
