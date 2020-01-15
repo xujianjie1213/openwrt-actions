@@ -8,11 +8,11 @@
 name: X64-Lean-OpenWrt-CI
 
 on:
-  schedule:
-    - cron: 0 22 * * *
-#  push:
-#    branches: 
-#      - master
+#  schedule:
+#    - cron: 0 22 * * *
+  push:
+    branches: 
+      - master
 
 jobs:
   build:
@@ -38,12 +38,26 @@ jobs:
 
     - name: Install feeds
       run: cd openwrt && ./scripts/feeds install -a
-    
-    - name: Costom configure file
+
+    - name: Load custom configuration
+      env:
+        CONFIG_FILE: '.config'
+        DIY_SH: 'diy.sh'
       run: |
-          cd openwrt
-          rm -f .config
-          cp ../lean-lede-x64 .config
+        [ -e files ] && mv files openwrt/files
+        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
+        chmod +x $DIY_SH
+        cd openwrt
+        ../$DIY_SH
+        make defconfig
+    - name: SSH connection to Actions
+      uses: P3TERX/debugger-action@master
+
+#    - name: Costom configure file
+#      run: |
+#          cd openwrt
+#          rm -f .config
+#          cp ../lean-lede-x64 .config
 
     - name: Make download
       run: |
