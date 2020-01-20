@@ -79,16 +79,23 @@ jobs:
           cd openwrt
           make -j1 V=s
 
-    - name: Assemble artifact
-      run: |
-          rm -rf ./artifact/
-          mkdir -p ./artifact/
-          find openwrt/bin/targets/ -name "*sysupgrade*bin*" | xargs -i mv -f {} ./artifact/
-          find openwrt/bin/targets/ -name "*combined*img*" | xargs -i mv -f {} ./artifact/
-          find openwrt/bin/targets/ -name "*combined*vmdk*" | xargs -i mv -f {} ./artifact/
-
-    - name: Upload artifact
+    - name: Upload bin directory
       uses: actions/upload-artifact@master
+      if: always()
       with:
-        name: OpenWrt firmware
-        path: ./artifact/
+        name: OpenWrt_bin
+        path: openwrt/bin
+
+    - name: Organize files
+      if: always()
+      run: |
+        cd openwrt/bin/targets/*/*
+        rm -rf packages
+        echo "::set-env name=FIRMWARE::$(pwd)"
+
+    - name: Upload firmware
+      uses: actions/upload-artifact@master
+      if: always()
+      with:
+        name: OpenWrt_firmware
+        path: ${{ env.FIRMWARE }}
