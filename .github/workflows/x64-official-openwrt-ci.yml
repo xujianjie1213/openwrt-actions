@@ -41,11 +41,26 @@ jobs:
     - name: Install feeds
       run: cd openwrt && ./scripts/feeds install -a
     
-    - name: Costom configure file
+    - name: Load custom configuration
+      env:
+        CONFIG_FILE: '.config'
+        DIY_SH: 'diy.sh'
       run: |
-          cd openwrt
-          rm -f .config
-          cp ../my-1907-x64 .config
+        [ -e files ] && mv files openwrt/files
+        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
+        chmod +x $DIY_SH
+        cd openwrt
+        ../$DIY_SH
+        make defconfig
+
+#    - name: Costom configure file
+#      run: |
+#          cd openwrt
+#          rm -f .config
+#          cp ../lean-lede-x64 .config   
+    
+    - name: SSH connection to Actions
+      uses: P3TERX/debugger-action@master
 
     - name: Make download
       run: |
@@ -66,15 +81,23 @@ jobs:
           cd openwrt
           make -j1 V=s
 
-    - name: Assemble artifact
-      run: |
-          rm -rf ./artifact/
-          mkdir -p ./artifact/
-          find openwrt/bin/targets/ -name "*sysupgrade*bin*" | xargs -i mv -f {} ./artifact/
-          find openwrt/bin/targets/ -name "*combined*img*" | xargs -i mv -f {} ./artifact/
-
-    - name: Upload artifact
+    - name: Upload bin directory
       uses: actions/upload-artifact@master
+      if: always()
       with:
-        name: OpenWrt firmware
-        path: ./artifact/
+        name: OpenWrt_bin
+        path: openwrt/bin
+
+    - name: Organize files
+      if: always()
+      run: |
+        cd openwrt/bin/targets/*/*
+        rm -rf packages
+        echo "::set-env name=FIRMWARE::$(pwd)"
+
+    - name: Upload firmware
+      uses: actions/upload-artifact@master
+      if: always()
+      with:
+        name: OpenWrt_firmware
+        path: ${{ env.FIRMWARE }}
