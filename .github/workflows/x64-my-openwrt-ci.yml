@@ -5,14 +5,16 @@
 # Author: P3TERX
 # Blog: https://p3terx.com
 #=================================================
-name: X64-My-OpenWrt-CI
+name: X64-Official-OpenWrt-CI
 
-#on:
+on:
 #  schedule:
 #    - cron: 0 22 * * *
 #  push:
 #    branches: 
 #      - master
+  release:
+    types: [published]
 
 jobs:
   build:
