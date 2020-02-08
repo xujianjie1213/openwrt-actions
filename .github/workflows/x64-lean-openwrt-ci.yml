@@ -5,7 +5,7 @@
 # Author: P3TERX
 # Blog: https://p3terx.com
 #=================================================
-name: X64-Lean-OpenWrt-Rylan
+name: X64-Lean-OpenWrt-Rylan-20200208-x64
 
 on:
 #  schedule:
