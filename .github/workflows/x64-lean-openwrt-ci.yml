@@ -5,7 +5,7 @@
 # Author: P3TERX
 # Blog: https://p3terx.com
 #=================================================
-name: X64-Lean-OpenWrt-Rylan-20200217-X64
+name: X64-Lean-OpenWrt-Rylan-20200221-X64
 
 on:
 #  schedule:
@@ -41,7 +41,7 @@ jobs:
 
     - name: Load custom configuration
       env:
-        CONFIG_FILE: '.config'
+        CONFIG_FILE: '64.config'
         DIY_SH: 'diy.sh'
       run: |
         [ -e files ] && mv files openwrt/files
@@ -51,8 +51,8 @@ jobs:
         ../$DIY_SH
         make defconfig
         
-    - name: SSH connection to Actions
-      uses: P3TERX/debugger-action@master
+#   - name: SSH connection to Actions
+#     uses: P3TERX/debugger-action@master
 
 #    - name: Costom configure file
 #      run: |
