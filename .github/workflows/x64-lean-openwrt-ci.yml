@@ -5,31 +5,54 @@
 # Author: P3TERX
 # Blog: https://p3terx.com
 #=================================================
-name: X64-Lean-OpenWrt-Rylan-20200222-X64
+
+name: AutoBuild OpenWrt-lean-lede X64 20200313
 
 on:
-#  schedule:
-#    - cron: 0 22 * * *
+  release:
+    types: [published]
   push:
-    branches: 
+    branches:
       - master
+    paths:
+      - '.config'
+
+#  schedule:
+#    - cron: 0 8 * * 5
+#  watch:
+#    types: [started]
+
+env:
+  REPO_URL: https://github.com/coolsnowwolf/lede.git
+  REPO_BRANCH: master
+  CONFIG_FILE: .config
+  DIY_SH: diy.sh
+  FREE_UP_DISK: true
+  SSH_ACTIONS: true
+  UPLOAD_BIN_DIR: true
+  UPLOAD_FIRMWARE: true
+  TZ: Asia/Shanghai
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
+    - name: Checkout
+      uses: actions/checkout@master
+
     - name: Initialization environment
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
-          echo "Deleting files, please wait ..."
-          sudo -E apt-get -qq update
-          sudo -E apt-get -qq install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler
-          sudo ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-    
+        sudo swapoff /swapfile
+        sudo rm -rf /swapfile /etc/apt/sources.list.d/*
+        sudo -E apt-get -qq update
+        sudo -E apt-get -qq install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler
+        curl -fsSL https://raw.githubusercontent.com/P3TERX/dotfiles/master/.bashrc >> ~/.bashrc
+
     - name: Free up disk space
+      if: env.FREE_UP_DISK == 'true'
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
@@ -38,13 +61,13 @@ jobs:
         sudo -E apt-get -q purge azure-cli ghc* zulu* hhvm llvm* firefox google* dotnet* powershell openjdk* mysql* php*
         sudo -E apt-get -qq autoremove --purge
         sudo -E apt-get -qq clean
-    
+
     - name: Clone source code
-      env: 
-        REPO_URL: https://github.com/Lienol/openwrt
-        REPO_BRANCH: dev-lean-lede
       run: git clone --depth 1 $REPO_URL -b $REPO_BRANCH openwrt
-    
+
+    - name: Import passwall
+      run: cd openwrt && echo "src-git lienol https://github.com/Lienol/openwrt-package">>feeds.conf.default
+
     - name: Update feeds
       run: cd openwrt && ./scripts/feeds update -a
 
@@ -52,9 +75,6 @@ jobs:
       run: cd openwrt && ./scripts/feeds install -a
 
     - name: Load custom configuration
-      env:
-        CONFIG_FILE: '64.config'
-        DIY_SH: 'diy.sh'
       run: |
         [ -e files ] && mv files openwrt/files
         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
@@ -62,52 +82,46 @@ jobs:
         cd openwrt
         ../$DIY_SH
         make defconfig
-        
-#   - name: SSH connection to Actions
-#     uses: P3TERX/debugger-action@master
 
-#    - name: Costom configure file
-#      run: |
-#          cd openwrt
-#          rm -f .config
-#          cp ../lean-lede-x64 .config
+    - name: SSH connection to Actions
+      uses: P3TERX/debugger-action@master
+      if: env.SSH_ACTIONS == 'true'
 
-    - name: Make download
+    - name: Download package
+      id: package
       run: |
-          cd openwrt
-          make download -j8
-          find dl -size -1024c -exec ls -l {} \;
-          find dl -size -1024c -exec rm -f {} \;
+        cd openwrt
+        make download -j8
+        find dl -size -1024c -exec ls -l {} \;
+        find dl -size -1024c -exec rm -f {} \;
 
-    - name: Multi-thread compile
+    - name: Compile the firmware
+      id: compile
       run: |
-          cd openwrt
-          echo -e "$(nproc) thread build."
-          make -j$(nproc) V=s
-
-    - name: Single-thread compile
-      if: failure()
-      run: |
-          cd openwrt
-          make -j1 V=s
+        cd openwrt
+        echo -e "$(nproc) thread compile"
+        make -j$(nproc) || make -j1 V=s
+        echo "::set-output name=status::success"
 
     - name: Upload bin directory
       uses: actions/upload-artifact@master
-      if: always()
+      if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
       with:
-        name: OpenWrt_bin
+        name: OpenWrt_directory
         path: openwrt/bin
 
     - name: Organize files
-      if: always()
+      id: organize
+      if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
         cd openwrt/bin/targets/*/*
         rm -rf packages
         echo "::set-env name=FIRMWARE::$(pwd)"
+        echo "::set-output name=status::success"
 
-    - name: Upload firmware
+    - name: Upload firmware directory
       uses: actions/upload-artifact@master
-      if: always()
+      if: steps.organize.outputs.status == 'success' && !cancelled()
       with:
         name: OpenWrt_firmware
         path: ${{ env.FIRMWARE }}
