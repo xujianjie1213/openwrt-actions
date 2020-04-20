@@ -15,7 +15,7 @@ on:
 #    branches:
 #      - master
     paths:
-      - '.config'
+      - 'x64.config'
 
 #  schedule:
 #    - cron: 0 8 * * 5
@@ -25,10 +25,10 @@ on:
 env:
   REPO_URL: https://github.com/coolsnowwolf/lede.git
   REPO_BRANCH: master
-  CONFIG_FILE: .config
+  CONFIG_FILE: x64.config
   DIY_SH: diy.sh
   FREE_UP_DISK: true
-  SSH_ACTIONS: true
+  SSH_ACTIONS: false
   UPLOAD_BIN_DIR: true
   UPLOAD_FIRMWARE: true
   TZ: Asia/Shanghai
