@@ -13,7 +13,7 @@ on:
 #    branches:
 #      - master
     paths:
-      - 'x64.config'
+      - '.config'
 
 #  schedule:
 #    - cron: 0 8 * * 5
@@ -23,10 +23,10 @@ on:
 env:
   REPO_URL: https://github.com/coolsnowwolf/lede
   REPO_BRANCH: master
-  CONFIG_FILE: x64.config
+  CONFIG_FILE: .config
   DIY_SH: diy.sh
 #  FREE_UP_DISK: false
-  SSH_ACTIONS: false
+  SSH_ACTIONS: true
   UPLOAD_BIN_DIR: false
   TZ: Asia/Shanghai
 
@@ -66,9 +66,6 @@ jobs:
         git clone --depth 1 $REPO_URL -b $REPO_BRANCH openwrt
         cd openwrt
         sed -i '5s/#//' feeds.conf.default
-
-#    - name: Import passwall
-#      run: cd openwrt && echo "src-git lienol https://github.com/Lienol/openwrt-package">>feeds.conf.default
 
     - name: Update & Install feeds
       run: cd openwrt && ./scripts/feeds update -a && ./scripts/feeds install -a && ./scripts/feeds install -a
