@@ -12,7 +12,7 @@ on:
     inputs:
       ssh:
         description: 'SSH connection to Actions'
-        required: false
+        required: true
         default: 'false'
 #  schedule:
 #    - cron: 0 8 * * 5
@@ -21,7 +21,7 @@ env:
   REPO_URL: https://github.com/coolsnowwolf/lede
   REPO_BRANCH: master
   FEEDS_CONF: feeds.conf.default
-  CONFIG_FILE: x64.config
+  CONFIG_FILE: .config
   DIY_P1_SH: diy1.sh
   DIY_P2_SH: diy2.sh
   UPLOAD_BIN_DIR: false
