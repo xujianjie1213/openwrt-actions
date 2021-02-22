@@ -14,6 +14,7 @@ git clone https://github.com/kenzok8/small package/small
 git clone https://github.com/tty228/luci-app-serverchan package/luci-app-serverchan
 ### serverchan dingTalk
 git clone https://github.com/zzsj0928/luci-app-serverchand package/luci-app-serverchand
+git clone https://github.com/xujianjie1213/luci-app-jd-qiandao package/luci-app-jd-qiandao
 
 #### add theme
 #git clone https://github.com/openwrt-develop/luci-theme-atmaterial package/luci-theme-atmaterial
