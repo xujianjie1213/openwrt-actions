@@ -21,6 +21,7 @@ git clone https://github.com/fw876/helloworld package/helloworld
 
 #### remove duplicate app-ssr-plus
 rm -rf package/openwrt-packages/luci-app-ssr-plus
+rm -rf package/openwrt-packages/luci-app-jd-dailybonus
 
 #### update and install feeds
 ./scripts/feeds update -a
