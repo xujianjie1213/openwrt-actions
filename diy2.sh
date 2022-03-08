@@ -10,14 +10,17 @@ sed -i 's/192.168.1.1/192.168.2.1/g' package/base-files/files/bin/config_generat
 
 #### add ext luci-app
 git clone https://github.com/kenzok8/small-package package/small-package
-git clone https://github.com/kenzok8/small package/small
-git clone https://github.com/tty228/luci-app-serverchan package/luci-app-serverchan
-### 原serverchand
-git clone https://github.com/zzsj0928/luci-app-pushbot package/luci-app-pushbot
-#### add hello world
-git clone https://github.com/fw876/helloworld package/helloworld
+
 
 #### add theme
+
+
+#### customize personal info
+echo '修改主机名称'
+sed -i 's/OpenWrt/HomeNet/g' package/base-files/files/bin/config_generate
+echo '修改banner'
+rm -rf package/base-files/files/etc/banner
+cp -f ../banner package/base-files/files/etc/
 
 
 #### update and install feeds
