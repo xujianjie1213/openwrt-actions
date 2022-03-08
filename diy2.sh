@@ -20,7 +20,7 @@ echo '修改主机名称'
 sed -i 's/OpenWrt/HomeNet/g' package/base-files/files/bin/config_generate
 echo '修改banner'
 rm -rf package/base-files/files/etc/banner
-cp -f ../banner package/base-files/files/etc/
+cp -f https://raw.githubusercontent.com/xujianjie1213/openwrt-actions/master/banner package/base-files/files/etc/
 
 
 #### update and install feeds
