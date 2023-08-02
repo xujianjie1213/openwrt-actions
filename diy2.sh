@@ -10,8 +10,8 @@ sed -i 's/192.168.1.1/192.168.2.1/g' package/base-files/files/bin/config_generat
 
 #### add ext luci-app
 git clone --depth=1 https://github.com/kenzok8/small-package package/small-package
-#### rm -rf package/small-package/firewall
-#### rm -rf package/small-package/firewall4
+rm -rf package/small-package/firewall
+rm -rf package/small-package/firewall4
 
 #### add theme
 
