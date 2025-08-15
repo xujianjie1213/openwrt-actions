@@ -106,7 +106,10 @@ jobs:
     - name: 下载固件源码
       working-directory: ./
       run: |
-        git clone $REPO_URL -b $REPO_BRANCH openwrt
+        git clone $REPO_URL -b $REPO_BRANCH openwrt        
+        ln -sf ./openwrt $GITHUB_WORKSPACE/openwrt        
+        cd openwrt
+        sed -i '$a src-git smpackage https://github.com/kenzok8/small-package' feeds.conf.default
 
     - name: 加载自定义设置
       run: |
