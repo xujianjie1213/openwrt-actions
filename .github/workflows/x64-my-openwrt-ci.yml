@@ -1,0 +1,71 @@
+name: X64-My-OpenWRT-CI
+
+on:
+  schedule:
+    - cron: 0 22 * * *
+  push:
+    branches: 
+      - master
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Initialization environment
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+          echo "Deleting files, please wait ..."
+          sudo -E apt-get -qq update
+          sudo -E apt-get -qq install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler
+          sudo ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+    - name: Clone source code
+      env: 
+        REPO_URL: https://github.com/Lienol/openwrt
+        REPO_BRANCH: new-my-19.07
+      run: git clone --depth 1 $REPO_URL -b $REPO_BRANCH openwrt
+    - name: Update feeds
+      run: cd openwrt && ./scripts/feeds update -a
+
+    - name: Install feeds
+      run: cd openwrt && ./scripts/feeds install -a
+    
+    - name: Costom configure file
+      run: |
+          cd openwrt
+          rm -f .config
+          cp .x64 .config
+
+    - name: Make download
+      run: |
+          cd openwrt
+          make download -j8
+          find dl -size -1024c -exec ls -l {} \;
+          find dl -size -1024c -exec rm -f {} \;
+
+    - name: Multi-thread compile
+      run: |
+          cd openwrt
+          echo -e "$(nproc) thread build."
+          make -j$(nproc) V=s
+
+    - name: Single-thread compile
+      if: failure()
+      run: |
+          cd openwrt
+          make -j1 V=s
+
+    - name: Assemble artifact
+      run: |
+          rm -rf ./artifact/
+          mkdir -p ./artifact/
+          find openwrt/bin/targets/ -name "*sysupgrade*bin*" | xargs -i mv -f {} ./artifact/
+          find openwrt/bin/targets/ -name "*combined*img*" | xargs -i mv -f {} ./artifact/
+          find openwrt/bin/targets/ -name "*combined*vmdk*" | xargs -i mv -f {} ./artifact/
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@master
+      with:
+        name: OpenWrt firmware
+        path: ./artifact/
